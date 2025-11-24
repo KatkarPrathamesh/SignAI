@@ -163,18 +163,53 @@ builder.Services.AddSwaggerGen(c =>
 // =========================
 // 🔥 FIXED CORS POLICY
 // =========================
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("CorsPolicy", builder =>
+//        builder.WithOrigins(
+//                "http://localhost:3000",
+//                "http://127.0.0.1:3000"
+//            )
+//            .AllowAnyHeader()
+//            .AllowAnyMethod()
+//            .AllowCredentials()
+//        );
+//});
+
 builder.Services.AddCors(options =>
+
 {
-    options.AddPolicy("CorsPolicy", builder =>
-        builder.WithOrigins(
-                "http://localhost:3000",
-                "http://127.0.0.1:3000"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
-        );
+
+    options.AddPolicy("CorsPolicy", cors =>
+
+        cors.WithOrigins(
+
+            "http://localhost:5173",
+
+            "http://127.0.0.1:5173",
+
+            // keep 3000 if you sometimes run CRA/Next:
+
+            "http://localhost:3000",
+
+            "http://127.0.0.1:3000"
+
+        // add your deployed UI later, e.g.:
+
+        // "https://tornatitans.shauryatechnosoft.com"
+
+        )
+
+        .AllowAnyHeader()
+
+        .AllowAnyMethod()
+
+    // .AllowCredentials() // <— ONLY if you actually use cookies/sessions
+
+    );
+
 });
+
 
 // Register services
 builder.Services.AddSingleton<DbConnectionFactory>();

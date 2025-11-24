@@ -98,16 +98,38 @@ namespace SignAI.Repositories.IRepositories
             try
             {
                 using var conn = await _db.CreateConnectionAsync();
+
+                // 🔹 1. Check if meeting exists
+                var meetingExists = await conn.QueryFirstOrDefaultAsync<int>(@"
+            SELECT 1 FROM Meetings WHERE id = @Mid",
+                    new { Mid = meetingId });
+
+                if (meetingExists != 1)
+                    return OperationResult.Fail("Meeting not found", "404");
+
+                // 🔹 2. Check if user already joined
+                var exists = await conn.QueryFirstOrDefaultAsync<int>(@"
+            SELECT 1 FROM MeetingParticipants 
+            WHERE meetingId = @Mid AND userId = @Uid",
+                    new { Mid = meetingId, Uid = userId });
+
+                if (exists == 1)
+                    return OperationResult.Fail("User already joined this meeting", "409");
+
+                // 🔹 3. Add participant
                 await conn.ExecuteAsync(@"
-                INSERT INTO MeetingParticipants (meetingId, userId, role, joinedAt)
-                VALUES (@Mid, @Uid, @Role, NOW());", new { Mid = meetingId, Uid = userId, Role = role });
+            INSERT INTO MeetingParticipants (meetingId, userId, role, joinedAt)
+            VALUES (@Mid, @Uid, @Role, NOW())",
+                    new { Mid = meetingId, Uid = userId, Role = role });
 
                 return OperationResult.Ok("Participant added successfully");
             }
             catch (Exception ex)
             {
-                return OperationResult.Fail($"Database error: {ex.Message}");
+                return OperationResult.Fail($"Database error: {ex.Message}", "500");
             }
         }
+
+
     }
 }

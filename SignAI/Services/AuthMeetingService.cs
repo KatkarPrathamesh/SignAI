@@ -15,15 +15,25 @@ namespace SignAI.Services
 
         public async Task<OperationResult<(long personId, long userId)>> Register(RegisterRequest req)
         {
-            var person = new Person { Salutation = req.Salutation, FullNameIntLang = req.FullNameIntLang, EmailId = req.Email, MobileNumber = req.MobileNumber };
+            var person = new Person
+            {
+                Salutation = req.Salutation,
+                FullNameIntLang = req.FullNameIntLang,
+                EmailId = req.Email,
+                MobileNumber = req.MobileNumber
+            };
+
             var personResult = await _repo.CreatePersonAsync(person);
-            if (!personResult.Success) return OperationResult<(long, long)>.Fail(personResult.Message);
+            if (!personResult.Success)
+                return OperationResult<(long, long)>.Fail(personResult.Message, personResult.StatusCode);
 
             var userResult = await _repo.CreateUserAsync(new User { PersonId = personResult.Data });
-            if (!userResult.Success) return OperationResult<(long, long)>.Fail(userResult.Message);
+            if (!userResult.Success)
+                return OperationResult<(long, long)>.Fail(userResult.Message, userResult.StatusCode);
 
-            return OperationResult<(long, long)>.Ok((personResult.Data, userResult.Data));
+            return OperationResult<(long, long)>.Ok((personResult.Data, userResult.Data), "Register successful");
         }
+
 
         public async Task<OperationResult<dynamic>> Login(string email)
         {
